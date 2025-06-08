@@ -2,15 +2,16 @@ import sqlite3
 
 DB_NAME = "stock.db"
 
-def add_product(reference, name, type, category, quantity, price, image_path):
-    conn = sqlite3.connect(DB_NAME)
+def add_product(reference, nom, categorie, quantite, fournisseur, image):
+    conn = sqlite3.connect('stock.db')
     cursor = conn.cursor()
     cursor.execute("""
-        INSERT INTO products (reference, name, type, category, quantity, price, image_path)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    """, (reference, name, type, category, quantity, price, image_path))
+        INSERT INTO products (reference, nom, categorie, quantite, fournisseur, image)
+        VALUES (?, ?, ?, ?, ?, ?)
+    """, (reference, nom, categorie, quantite, fournisseur, image))
     conn.commit()
     conn.close()
+
 
 def get_all_products():
     conn = sqlite3.connect(DB_NAME)
@@ -20,16 +21,17 @@ def get_all_products():
     conn.close()
     return rows
 
-def update_product(product_id, reference, name, type, category, quantity, price, image_path):
+def update_product(product_id, reference, nom, categorie, quantite, fournisseur, image):
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
     cursor.execute("""
         UPDATE products
-        SET reference = ?, name = ?, type = ?, category = ?, quantity = ?, price = ?, image_path = ?
+        SET reference = ?, nom = ?, categorie = ?, quantite = ?, fournisseur = ?, image = ?
         WHERE id = ?
-    """, (reference, name, type, category, quantity, price, image_path, product_id))
+    """, (reference, nom, categorie, quantite, fournisseur, image, product_id))
     conn.commit()
     conn.close()
+
 
 def delete_product(product_id):
     conn = sqlite3.connect(DB_NAME)
@@ -43,8 +45,20 @@ def search_products(keyword):
     cursor = conn.cursor()
     cursor.execute("""
         SELECT * FROM products
-        WHERE name LIKE ? OR category LIKE ? OR reference LIKE ? OR type LIKE ?
-    """, (f'%{keyword}%', f'%{keyword}%', f'%{keyword}%', f'%{keyword}%'))
+        WHERE nom LIKE ? OR categorie LIKE ? OR reference LIKE ?
+    """, (f'%{keyword}%', f'%{keyword}%', f'%{keyword}%'))
+
+    results = cursor.fetchall()
+    conn.close()
+    return results
+
+def get_low_stock_products(threshold=5):
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT reference, name, category, quantity, price, image_path
+        FROM products WHERE quantity < ?
+    ''', (threshold,))
     results = cursor.fetchall()
     conn.close()
     return results
