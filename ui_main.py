@@ -8,6 +8,8 @@ from PyQt5.QtCore import Qt
 from database import init_db
 from product_service import add_product, get_all_products, delete_product, update_product, get_low_stock_products, search_products
 
+from stock_window import StockWindow
+
 import csv
 
 class MainWindow(QWidget):
@@ -100,6 +102,10 @@ class MainWindow(QWidget):
         self.low_stock_btn = QPushButton("Afficher les produits en faible stock")
         self.low_stock_btn.clicked.connect(self.show_low_stock_products)
         layout.addWidget(self.low_stock_btn)
+
+        self.view_stock_btn = QPushButton("📊 Voir les Produits et le Stock")
+        self.view_stock_btn.clicked.connect(self.open_stock_window)
+        layout.addWidget(self.view_stock_btn)
 
         # Tableau
         self.table = QTableWidget()
@@ -287,16 +293,32 @@ class MainWindow(QWidget):
         products = get_all_products()
 
         if criterion == "Catégorie":
-            values = {p[5] for p in products if p[5]}  # Column 5 is category
+            values = {p[5] for p in products if p[5]}  # Colonne 5 = Catégorie
         else:
             self.load_products()
             return
 
         if values:
-            selected_value, ok = QInputDialog.getItem(self, f"Sélectionner une {criterion.lower()}", f"{criterion}s disponibles", list(values), 0, False)
+            selected_value, ok = QInputDialog.getItem(
+                self,
+                f"Sélectionner une {criterion.lower()}",
+                f"{criterion}s disponibles",
+                sorted(list(values)),
+                0,
+                False
+            )
             if ok:
-                filtered = [p for p in products if p[5] == selected_value]  # Column 5 is category
+                if criterion == "Catégorie":
+                    filtered = [p for p in products if p[5] == selected_value]
+                else:
+                    filtered = products
                 self.load_products(filtered)
+            else:
+                self.load_products()
+        else:
+            QMessageBox.information(self, "Info", f"Aucune {criterion.lower()} disponible.")
+
+
 
     def export_csv(self):
         file_path, _ = QFileDialog.getSaveFileName(self, "Exporter CSV", "", "CSV Files (*.csv)")
@@ -323,3 +345,9 @@ class MainWindow(QWidget):
         products = get_all_products()
         low_stock_full = [p for p in products if p[3] < 5]  # Filter products with quantity < 5
         self.load_products(low_stock_full)
+
+
+    def open_stock_window(self):
+        self.stock_window = StockWindow()
+        self.stock_window.show()
+    
