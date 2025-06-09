@@ -2,15 +2,16 @@ import sqlite3
 
 DB_NAME = "stock.db"
 
-def add_product(reference, nom, categorie, quantite, fournisseur, image):
-    conn = sqlite3.connect('stock.db')
+def add_product(reference, nom, quantite, prix, categorie, fournisseur, image):
+    conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
-    cursor.execute("""
-        INSERT INTO products (reference, nom, categorie, quantite, fournisseur, image)
-        VALUES (?, ?, ?, ?, ?, ?)
-    """, (reference, nom, categorie, quantite, fournisseur, image))
+    cursor.execute('''
+        INSERT INTO products (reference, nom, quantite, prix, categorie, fournisseur, image)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    ''', (reference, nom, quantite, prix, categorie, fournisseur, image))
     conn.commit()
     conn.close()
+
 
 
 def get_all_products():
@@ -21,16 +22,17 @@ def get_all_products():
     conn.close()
     return rows
 
-def update_product(product_id, reference, nom, categorie, quantite, fournisseur, image):
+def update_product(product_id, reference, nom, quantite, prix, categorie, fournisseur, image):
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
-    cursor.execute("""
+    cursor.execute('''
         UPDATE products
-        SET reference = ?, nom = ?, categorie = ?, quantite = ?, fournisseur = ?, image = ?
-        WHERE id = ?
-    """, (reference, nom, categorie, quantite, fournisseur, image, product_id))
+        SET reference=?, nom=?, quantite=?, prix=?, categorie=?, fournisseur=?, image=?
+        WHERE id=?
+    ''', (reference, nom, quantite, prix, categorie, fournisseur, image, product_id))
     conn.commit()
     conn.close()
+
 
 
 def delete_product(product_id):
@@ -56,8 +58,7 @@ def get_low_stock_products(threshold=5):
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
     cursor.execute('''
-        SELECT reference, name, category, quantity, price, image_path
-        FROM products WHERE quantity < ?
+        SELECT * FROM products WHERE quantite < ?
     ''', (threshold,))
     results = cursor.fetchall()
     conn.close()

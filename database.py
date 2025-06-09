@@ -4,17 +4,20 @@ def init_db():
     conn = sqlite3.connect("stock.db")
     cursor = conn.cursor()
 
+    cursor.execute("DROP TABLE IF EXISTS products")
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS products (
+        CREATE TABLE products (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            reference TEXT NOT NULL,
-            nom TEXT NOT NULL,
+            reference TEXT,
+            nom TEXT,
+            quantite INTEGER,
+            prix REAL,
             categorie TEXT,
-            quantite INTEGER NOT NULL,
             fournisseur TEXT,
             image TEXT
         )
     """)
+
     
     conn.commit()
     conn.close()
